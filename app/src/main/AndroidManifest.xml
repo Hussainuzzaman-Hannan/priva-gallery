@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        ইচ্ছাকৃতভাবে INTERNET পারমিশন এখানে নেই।
+        এটাই এই অ্যাপের মূল প্রতিশ্রুতি — অ্যাপটা সিস্টেম-লেভেলে কোনো নেটওয়ার্ক
+        রিকোয়েস্ট পাঠাতেই পারবে না, কোডে কোনো ভুল বা ইচ্ছাকৃত পরিবর্তন থাকলেও।
+        ভবিষ্যতে যদি কোনো ডেভেলপার ভুল করে network call যুক্ত করতে চায়,
+        সেটা কম্পাইল/রানটাইমে SecurityException দিয়ে ফেইল করবে।
+    -->
+
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <application
+        android:name=".PrivaGalleryApp"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PrivaGallery">
+
+        <!--
+            allowBackup="false" — ফটো বা DB যাতে Android-এর auto backup মেকানিজমের
+            মাধ্যমেও কোথাও না চলে যায় (Google অ্যাকাউন্টে cloud backup সহ)।
+        -->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PrivaGallery">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
