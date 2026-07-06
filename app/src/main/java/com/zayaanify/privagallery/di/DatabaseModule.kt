@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.zayaanify.privagallery.data.local.db.AppDatabase
 import com.zayaanify.privagallery.data.local.db.dao.AppLockDao
 import com.zayaanify.privagallery.data.local.db.dao.FavoritePhotoDao
+import com.zayaanify.privagallery.data.local.db.dao.PhotoTextIndexDao
 import com.zayaanify.privagallery.data.local.db.dao.VaultPhotoDao
 import dagger.Module
 import dagger.Provides
@@ -15,7 +16,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-// Version 1 → 2: vault_photos টেবিল যোগ হয়েছে
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("""
@@ -34,6 +34,18 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS photo_text_index (
+                mediaStoreId INTEGER PRIMARY KEY NOT NULL,
+                extractedText TEXT NOT NULL,
+                indexedAt INTEGER NOT NULL
+            )
+        """.trimIndent())
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -46,22 +58,23 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 
     @Provides
-    fun provideFavoritePhotoDao(database: AppDatabase): FavoritePhotoDao {
-        return database.favoritePhotoDao()
-    }
+    fun provideFavoritePhotoDao(database: AppDatabase): FavoritePhotoDao =
+        database.favoritePhotoDao()
 
     @Provides
-    fun provideAppLockDao(database: AppDatabase): AppLockDao {
-        return database.appLockDao()
-    }
+    fun provideAppLockDao(database: AppDatabase): AppLockDao =
+        database.appLockDao()
 
     @Provides
-    fun provideVaultPhotoDao(database: AppDatabase): VaultPhotoDao {
-        return database.vaultPhotoDao()
-    }
+    fun provideVaultPhotoDao(database: AppDatabase): VaultPhotoDao =
+        database.vaultPhotoDao()
+
+    @Provides
+    fun providePhotoTextIndexDao(database: AppDatabase): PhotoTextIndexDao =
+        database.photoTextIndexDao()
 }

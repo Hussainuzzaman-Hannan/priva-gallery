@@ -8,8 +8,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.zayaanify.privagallery.presentation.albumdetail.AlbumDetailScreen
+import com.zayaanify.privagallery.presentation.category.CategoryScreen
+import com.zayaanify.privagallery.presentation.duplicate.DuplicateScreen
 import com.zayaanify.privagallery.presentation.gallery.GalleryScreen
 import com.zayaanify.privagallery.presentation.lock.AppLockScreen
+import com.zayaanify.privagallery.presentation.ocrsearch.OcrSearchScreen
 import com.zayaanify.privagallery.presentation.vault.VaultScreen
 import com.zayaanify.privagallery.presentation.viewer.PhotoViewerScreen
 import java.net.URLEncoder
@@ -18,6 +21,9 @@ object Routes {
     const val LOCK = "lock"
     const val GALLERY = "gallery"
     const val VAULT = "vault"
+    const val DUPLICATE = "duplicate"
+    const val CATEGORY = "category"
+    const val OCR_SEARCH = "ocr_search"
     const val ALBUM_DETAIL = "album_detail/{bucketId}/{albumName}"
     const val PHOTO_VIEWER = "photo_viewer/{bucketId}/{mediaStoreId}"
 
@@ -54,14 +60,33 @@ fun PrivaGalleryNavHost(
                 },
                 onVaultClick = {
                     navController.navigate(Routes.VAULT)
+                },
+                onDuplicateClick = {
+                    navController.navigate(Routes.DUPLICATE)
+                },
+                onCategoryClick = {
+                    navController.navigate(Routes.CATEGORY)
+                },
+                onOcrSearchClick = {
+                    navController.navigate(Routes.OCR_SEARCH)
                 }
             )
         }
 
         composable(Routes.VAULT) {
-            VaultScreen(
-                onBackClick = { navController.popBackStack() }
-            )
+            VaultScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Routes.DUPLICATE) {
+            DuplicateScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Routes.CATEGORY) {
+            CategoryScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Routes.OCR_SEARCH) {
+            OcrSearchScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable(
@@ -87,9 +112,7 @@ fun PrivaGalleryNavHost(
                 navArgument("mediaStoreId") { type = NavType.LongType }
             )
         ) {
-            PhotoViewerScreen(
-                onBackClick = { navController.popBackStack() }
-            )
+            PhotoViewerScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }

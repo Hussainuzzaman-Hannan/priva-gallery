@@ -1,5 +1,8 @@
 package com.zayaanify.privagallery.presentation.gallery
 
+import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +43,9 @@ import com.zayaanify.privagallery.domain.model.Album
 fun GalleryScreen(
     onAlbumClick: (bucketId: String, albumName: String) -> Unit,
     onVaultClick: () -> Unit,
+    onDuplicateClick: () -> Unit,
+    onCategoryClick: () -> Unit,
+    onOcrSearchClick: () -> Unit,
     viewModel: GalleryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -49,6 +55,24 @@ fun GalleryScreen(
             CenterAlignedTopAppBar(
                 title = { Text("PrivaGallery") },
                 actions = {
+                    IconButton(onClick = onOcrSearchClick) {
+                        Icon(
+                            imageVector = Icons.Default.ManageSearch,
+                            contentDescription = "স্ক্রিনশট সার্চ"
+                        )
+                    }
+                    IconButton(onClick = onCategoryClick) {
+                        Icon(
+                            imageVector = Icons.Default.Category,
+                            contentDescription = "ক্যাটেগরি"
+                        )
+                    }
+                    IconButton(onClick = onDuplicateClick) {
+                        Icon(
+                            imageVector = Icons.Default.FindReplace,
+                            contentDescription = "Duplicate খুঁজুন"
+                        )
+                    }
                     IconButton(onClick = onVaultClick) {
                         Icon(
                             imageVector = Icons.Default.Lock,

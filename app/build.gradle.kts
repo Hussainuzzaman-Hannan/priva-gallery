@@ -80,6 +80,12 @@ dependencies {
     implementation("com.google.mlkit:image-labeling:17.0.8")
     implementation("com.google.mlkit:vision-common:17.3.0")
 
+    // ML Kit Image Labeling — on-device
+    implementation("com.google.mlkit:image-labeling:17.0.8")
+
+    // ML Kit Text Recognition — on-device OCR
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
