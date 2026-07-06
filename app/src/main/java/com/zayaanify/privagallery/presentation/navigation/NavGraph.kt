@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.zayaanify.privagallery.presentation.albumdetail.AlbumDetailScreen
+import com.zayaanify.privagallery.presentation.backup.BackupScreen
 import com.zayaanify.privagallery.presentation.category.CategoryScreen
 import com.zayaanify.privagallery.presentation.duplicate.DuplicateScreen
 import com.zayaanify.privagallery.presentation.gallery.GalleryScreen
@@ -24,6 +25,7 @@ object Routes {
     const val DUPLICATE = "duplicate"
     const val CATEGORY = "category"
     const val OCR_SEARCH = "ocr_search"
+    const val BACKUP = "backup"
     const val ALBUM_DETAIL = "album_detail/{bucketId}/{albumName}"
     const val PHOTO_VIEWER = "photo_viewer/{bucketId}/{mediaStoreId}"
 
@@ -69,6 +71,9 @@ fun PrivaGalleryNavHost(
                 },
                 onOcrSearchClick = {
                     navController.navigate(Routes.OCR_SEARCH)
+                },
+                onBackupClick = {
+                    navController.navigate(Routes.BACKUP)
                 }
             )
         }
@@ -87,6 +92,10 @@ fun PrivaGalleryNavHost(
 
         composable(Routes.OCR_SEARCH) {
             OcrSearchScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Routes.BACKUP) {
+            BackupScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable(

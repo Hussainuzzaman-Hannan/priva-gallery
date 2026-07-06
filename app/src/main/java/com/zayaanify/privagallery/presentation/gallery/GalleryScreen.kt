@@ -1,5 +1,6 @@
 package com.zayaanify.privagallery.presentation.gallery
 
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.FindReplace
@@ -46,6 +47,7 @@ fun GalleryScreen(
     onDuplicateClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onOcrSearchClick: () -> Unit,
+    onBackupClick: () -> Unit,
     viewModel: GalleryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,6 +73,12 @@ fun GalleryScreen(
                         Icon(
                             imageVector = Icons.Default.FindReplace,
                             contentDescription = "Duplicate খুঁজুন"
+                        )
+                    }
+                    IconButton(onClick = onBackupClick) {
+                        Icon(
+                            imageVector = Icons.Default.Backup,
+                            contentDescription = "Backup"
                         )
                     }
                     IconButton(onClick = onVaultClick) {
