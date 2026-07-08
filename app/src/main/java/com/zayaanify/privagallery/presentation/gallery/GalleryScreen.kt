@@ -1,9 +1,5 @@
 package com.zayaanify.privagallery.presentation.gallery
 
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.ManageSearch
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +14,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,6 +49,7 @@ fun GalleryScreen(
     onCategoryClick: () -> Unit,
     onOcrSearchClick: () -> Unit,
     onBackupClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: GalleryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -57,6 +59,12 @@ fun GalleryScreen(
             CenterAlignedTopAppBar(
                 title = { Text("PrivaGallery") },
                 actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "সেটিংস"
+                        )
+                    }
                     IconButton(onClick = onOcrSearchClick) {
                         Icon(
                             imageVector = Icons.Default.ManageSearch,

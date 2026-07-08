@@ -54,6 +54,7 @@ import com.zayaanify.privagallery.domain.model.Photo
 fun AlbumDetailScreen(
     onBackClick: () -> Unit,
     onPhotoClick: (mediaStoreId: Long) -> Unit,
+    onVideoClick: (videoUri: String) -> Unit,
     viewModel: AlbumDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -106,31 +107,27 @@ fun AlbumDetailScreen(
                 Box(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                ) { CircularProgressIndicator() }
             }
-
             uiState.photos.isEmpty() -> {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.Center
-                ) {
-                    Text("এই অ্যালবামে কোনো ছবি নেই")
-                }
+                ) { Text("এই অ্যালবামে কোনো ছবি নেই") }
             }
-
             else -> {
                 PhotoGrid(
                     photos = uiState.photos,
                     selectedIds = uiState.selectedIds,
                     isSelectionMode = uiState.isSelectionMode,
                     contentPadding = padding,
-                    onPhotoClick = { mediaStoreId ->
+                    onPhotoClick = { photo ->
                         if (uiState.isSelectionMode) {
-                            viewModel.onPhotoTapInSelectionMode(mediaStoreId)
+                            viewModel.onPhotoTapInSelectionMode(photo.mediaStoreId)
+                        } else if (photo.isVideo) {
+                            onVideoClick(photo.contentUri)
                         } else {
-                            onPhotoClick(mediaStoreId)
+                            onPhotoClick(photo.mediaStoreId)
                         }
                     },
                     onPhotoLongPress = { viewModel.onPhotoLongPress(it) }
@@ -172,7 +169,7 @@ private fun PhotoGrid(
     selectedIds: Set<Long>,
     isSelectionMode: Boolean,
     contentPadding: PaddingValues,
-    onPhotoClick: (Long) -> Unit,
+    onPhotoClick: (Photo) -> Unit,       // ← Long থেকে Photo তে বদলানো হয়েছে
     onPhotoLongPress: (Long) -> Unit
 ) {
     LazyVerticalGrid(
@@ -191,7 +188,7 @@ private fun PhotoGrid(
                 photo = photo,
                 isSelected = photo.mediaStoreId in selectedIds,
                 isSelectionMode = isSelectionMode,
-                onClick = { onPhotoClick(photo.mediaStoreId) },
+                onClick = { onPhotoClick(photo) },      // ← photo পুরোটা পাঠানো হচ্ছে
                 onLongPress = { onPhotoLongPress(photo.mediaStoreId) }
             )
         }

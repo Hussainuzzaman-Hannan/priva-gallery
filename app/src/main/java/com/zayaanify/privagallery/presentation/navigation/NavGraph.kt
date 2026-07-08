@@ -14,8 +14,11 @@ import com.zayaanify.privagallery.presentation.duplicate.DuplicateScreen
 import com.zayaanify.privagallery.presentation.gallery.GalleryScreen
 import com.zayaanify.privagallery.presentation.lock.AppLockScreen
 import com.zayaanify.privagallery.presentation.ocrsearch.OcrSearchScreen
+import com.zayaanify.privagallery.presentation.settings.SettingsScreen
 import com.zayaanify.privagallery.presentation.vault.VaultScreen
 import com.zayaanify.privagallery.presentation.viewer.PhotoViewerScreen
+import com.zayaanify.privagallery.presentation.viewer.VideoPlayerScreen
+import java.net.URLDecoder
 import java.net.URLEncoder
 
 object Routes {
@@ -26,8 +29,10 @@ object Routes {
     const val CATEGORY = "category"
     const val OCR_SEARCH = "ocr_search"
     const val BACKUP = "backup"
+    const val SETTINGS = "settings"
     const val ALBUM_DETAIL = "album_detail/{bucketId}/{albumName}"
     const val PHOTO_VIEWER = "photo_viewer/{bucketId}/{mediaStoreId}"
+    const val VIDEO_PLAYER = "video_player/{videoUri}"
 
     fun albumDetail(bucketId: String, albumName: String): String {
         val encodedName = URLEncoder.encode(albumName, "UTF-8")
@@ -36,6 +41,11 @@ object Routes {
 
     fun photoViewer(bucketId: String, mediaStoreId: Long): String {
         return "photo_viewer/$bucketId/$mediaStoreId"
+    }
+
+    fun videoPlayer(videoUri: String): String {
+        val encodedUri = URLEncoder.encode(videoUri, "UTF-8")
+        return "video_player/$encodedUri"
     }
 }
 
@@ -60,21 +70,12 @@ fun PrivaGalleryNavHost(
                 onAlbumClick = { bucketId, albumName ->
                     navController.navigate(Routes.albumDetail(bucketId, albumName))
                 },
-                onVaultClick = {
-                    navController.navigate(Routes.VAULT)
-                },
-                onDuplicateClick = {
-                    navController.navigate(Routes.DUPLICATE)
-                },
-                onCategoryClick = {
-                    navController.navigate(Routes.CATEGORY)
-                },
-                onOcrSearchClick = {
-                    navController.navigate(Routes.OCR_SEARCH)
-                },
-                onBackupClick = {
-                    navController.navigate(Routes.BACKUP)
-                }
+                onVaultClick = { navController.navigate(Routes.VAULT) },
+                onDuplicateClick = { navController.navigate(Routes.DUPLICATE) },
+                onCategoryClick = { navController.navigate(Routes.CATEGORY) },
+                onOcrSearchClick = { navController.navigate(Routes.OCR_SEARCH) },
+                onBackupClick = { navController.navigate(Routes.BACKUP) },
+                onSettingsClick = { navController.navigate(Routes.SETTINGS) }
             )
         }
 
@@ -98,6 +99,10 @@ fun PrivaGalleryNavHost(
             BackupScreen(onBackClick = { navController.popBackStack() })
         }
 
+        composable(Routes.SETTINGS) {
+            SettingsScreen(onBackClick = { navController.popBackStack() })
+        }
+
         composable(
             route = Routes.ALBUM_DETAIL,
             arguments = listOf(
@@ -110,6 +115,9 @@ fun PrivaGalleryNavHost(
                 onBackClick = { navController.popBackStack() },
                 onPhotoClick = { mediaStoreId ->
                     navController.navigate(Routes.photoViewer(bucketId, mediaStoreId))
+                },
+                onVideoClick = { videoUri ->
+                    navController.navigate(Routes.videoPlayer(videoUri))
                 }
             )
         }
@@ -122,6 +130,20 @@ fun PrivaGalleryNavHost(
             )
         ) {
             PhotoViewerScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(
+            route = Routes.VIDEO_PLAYER,
+            arguments = listOf(
+                navArgument("videoUri") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val encodedUri = backStackEntry.arguments?.getString("videoUri") ?: ""
+            val videoUri = URLDecoder.decode(encodedUri, "UTF-8")
+            VideoPlayerScreen(
+                videoUri = videoUri,
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 }

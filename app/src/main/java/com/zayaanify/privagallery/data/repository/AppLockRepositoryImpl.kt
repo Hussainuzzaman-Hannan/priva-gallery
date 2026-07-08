@@ -19,15 +19,21 @@ class AppLockRepositoryImpl @Inject constructor(
         return appLockDao.observe().map { it?.isLockEnabled == true }
     }
 
+    override fun isBiometricEnabled(): Flow<Boolean> {
+        return appLockDao.observe().map { it?.biometricEnabled == true }
+    }
+
     override suspend fun setPin(pin: String) {
         val salt = pinHasher.generateSalt()
         val hash = pinHasher.hash(pin, salt)
+        val current = appLockDao.get()
         appLockDao.upsert(
             AppLockEntity(
                 id = 1,
                 pinHash = hash,
                 salt = salt,
-                isLockEnabled = true
+                isLockEnabled = true,
+                biometricEnabled = current?.biometricEnabled ?: false
             )
         )
     }
@@ -42,11 +48,18 @@ class AppLockRepositoryImpl @Inject constructor(
     override suspend fun disableLock() {
         val current = appLockDao.get()
         if (current != null) {
-            appLockDao.upsert(current.copy(isLockEnabled = false))
+            appLockDao.upsert(
+                current.copy(isLockEnabled = false, biometricEnabled = false)
+            )
         }
     }
 
     override suspend fun hasPinSet(): Boolean {
         return appLockDao.get()?.pinHash != null
+    }
+
+    override suspend fun setBiometricEnabled(enabled: Boolean) {
+        val current = appLockDao.get() ?: return
+        appLockDao.upsert(current.copy(biometricEnabled = enabled))
     }
 }

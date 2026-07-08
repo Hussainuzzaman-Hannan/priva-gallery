@@ -7,27 +7,28 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -36,9 +37,22 @@ fun AppLockScreen(
     viewModel: AppLockViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(uiState.isUnlocked) {
         if (uiState.isUnlocked) onUnlocked()
+    }
+
+    // Unlock মোডে biometric available থাকলে অটো prompt দেখানো
+    LaunchedEffect(uiState.isCheckingInitialState, uiState.isBiometricEnabled) {
+        if (!uiState.isCheckingInitialState &&
+            uiState.mode == LockScreenMode.UNLOCK &&
+            uiState.isBiometricEnabled &&
+            uiState.isBiometricAvailable
+        ) {
+            val activity = context as? FragmentActivity
+            activity?.let { viewModel.showBiometricPrompt(it) }
+        }
     }
 
     if (uiState.isCheckingInitialState) {
@@ -76,11 +90,34 @@ fun AppLockScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = uiState.errorMessage ?: "",
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
 
         Spacer(modifier = Modifier.weight(1f))
+
+        // Biometric বাটন — শুধু UNLOCK মোডে দেখাবে
+        if (uiState.mode == LockScreenMode.UNLOCK &&
+            uiState.isBiometricEnabled &&
+            uiState.isBiometricAvailable
+        ) {
+            IconButton(
+                onClick = {
+                    val activity = context as? FragmentActivity
+                    activity?.let { viewModel.showBiometricPrompt(it) }
+                },
+                modifier = Modifier.size(56.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Fingerprint,
+                    contentDescription = "Biometric আনলক",
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         NumberPad(
             onDigit = { viewModel.onDigitPress(it) },
@@ -100,7 +137,8 @@ private fun PinDots(filledCount: Int, totalCount: Int) {
                 modifier = Modifier
                     .size(16.dp)
                     .background(
-                        color = if (filled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        color = if (filled) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant,
                         shape = CircleShape
                     )
             )
@@ -135,7 +173,10 @@ private fun NumberPad(
                 onClick = onBackspace,
                 modifier = Modifier.size(64.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "ব্যাকস্পেস")
+                Icon(
+                    Icons.AutoMirrored.Filled.Backspace,
+                    contentDescription = "ব্যাকস্পেস"
+                )
             }
         }
     }
@@ -154,4 +195,3 @@ private fun NumberPadButton(label: String, onClick: () -> Unit) {
         }
     }
 }
-
