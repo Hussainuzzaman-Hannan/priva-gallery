@@ -5,10 +5,12 @@ import androidx.room.RoomDatabase
 import com.zayaanify.privagallery.data.local.db.dao.AppLockDao
 import com.zayaanify.privagallery.data.local.db.dao.FavoritePhotoDao
 import com.zayaanify.privagallery.data.local.db.dao.PhotoTextIndexDao
+import com.zayaanify.privagallery.data.local.db.dao.RecycleBinDao
 import com.zayaanify.privagallery.data.local.db.dao.VaultPhotoDao
 import com.zayaanify.privagallery.data.local.db.entity.AppLockEntity
 import com.zayaanify.privagallery.data.local.db.entity.FavoritePhotoEntity
 import com.zayaanify.privagallery.data.local.db.entity.PhotoTextIndexEntity
+import com.zayaanify.privagallery.data.local.db.entity.RecycleBinEntity
 import com.zayaanify.privagallery.data.local.db.entity.VaultPhotoEntity
 
 @Database(
@@ -16,9 +18,10 @@ import com.zayaanify.privagallery.data.local.db.entity.VaultPhotoEntity
         FavoritePhotoEntity::class,
         AppLockEntity::class,
         VaultPhotoEntity::class,
-        PhotoTextIndexEntity::class
+        PhotoTextIndexEntity::class,
+        RecycleBinEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,6 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun appLockDao(): AppLockDao
     abstract fun vaultPhotoDao(): VaultPhotoDao
     abstract fun photoTextIndexDao(): PhotoTextIndexDao
+    abstract fun recycleBinDao(): RecycleBinDao
 
     companion object {
         const val DATABASE_NAME = "privagallery.db"

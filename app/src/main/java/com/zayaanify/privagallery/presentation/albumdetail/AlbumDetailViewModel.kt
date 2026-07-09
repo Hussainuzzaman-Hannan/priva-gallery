@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zayaanify.privagallery.domain.model.Photo
+import com.zayaanify.privagallery.domain.repository.RecycleBinRepository
 import com.zayaanify.privagallery.domain.usecase.DeletePhotosUseCase
 import com.zayaanify.privagallery.domain.usecase.GetPhotosInAlbumUseCase
 import com.zayaanify.privagallery.domain.usecase.MoveToVaultUseCase
@@ -25,7 +26,9 @@ data class AlbumDetailUiState(
     val isSelectionMode: Boolean = false,
     val isLoading: Boolean = true,
     val deletePendingIntent: PendingIntent? = null,
-    val message: String? = null
+    val message: String? = null,
+    // Recycle Bin-এ copy হওয়ার পর delete confirm করার জন্য
+    val pendingRecycleBinDeleteIds: List<Long> = emptyList()
 )
 
 @HiltViewModel
@@ -34,6 +37,7 @@ class AlbumDetailViewModel @Inject constructor(
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val deletePhotosUseCase: DeletePhotosUseCase,
     private val moveToVaultUseCase: MoveToVaultUseCase,
+    private val recycleBinRepository: RecycleBinRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -86,12 +90,37 @@ class AlbumDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * ধাপ ১: ফাইল Recycle Bin-এ copy করা
+     * ধাপ ২: MediaStore থেকে delete করার জন্য PendingIntent চাওয়া
+     * ধাপ ৩: User confirm করলে consumeDeletePendingIntent() call হবে
+     *         এবং Recycle Bin DB entry থেকে যাবে
+     */
     fun requestDeleteSelected() {
         viewModelScope.launch {
-            val ids = _uiState.value.selectedIds.toList()
-            if (ids.isEmpty()) return@launch
-            val pendingIntent = deletePhotosUseCase(ids)
-            _uiState.value = _uiState.value.copy(deletePendingIntent = pendingIntent)
+            val selectedPhotos = _uiState.value.photos
+                .filter { it.mediaStoreId in _uiState.value.selectedIds }
+
+            // ধাপ ১: Recycle Bin-এ copy করা
+            val copiedIds = mutableListOf<Long>()
+            selectedPhotos.forEach { photo ->
+                recycleBinRepository.copyToRecycleBin(photo.mediaStoreId)
+                    .onSuccess { copiedIds.add(photo.mediaStoreId) }
+            }
+
+            if (copiedIds.isEmpty()) {
+                _uiState.value = _uiState.value.copy(
+                    message = "Recycle Bin-এ রাখা যায়নি"
+                )
+                return@launch
+            }
+
+            // ধাপ ২: MediaStore delete request পাঠানো
+            val pendingIntent = deletePhotosUseCase(copiedIds)
+            _uiState.value = _uiState.value.copy(
+                deletePendingIntent = pendingIntent,
+                pendingRecycleBinDeleteIds = copiedIds
+            )
         }
     }
 

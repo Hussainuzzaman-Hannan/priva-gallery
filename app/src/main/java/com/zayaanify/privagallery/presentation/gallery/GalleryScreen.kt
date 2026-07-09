@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.ManageSearch
@@ -50,6 +51,7 @@ fun GalleryScreen(
     onOcrSearchClick: () -> Unit,
     onBackupClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onRecycleBinClick: () -> Unit,
     viewModel: GalleryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -81,6 +83,12 @@ fun GalleryScreen(
                         Icon(
                             imageVector = Icons.Default.FindReplace,
                             contentDescription = "Duplicate খুঁজুন"
+                        )
+                    }
+                    IconButton(onClick = onRecycleBinClick) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Recycle Bin"
                         )
                     }
                     IconButton(onClick = onBackupClick) {

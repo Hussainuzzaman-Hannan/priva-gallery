@@ -14,6 +14,7 @@ import com.zayaanify.privagallery.presentation.duplicate.DuplicateScreen
 import com.zayaanify.privagallery.presentation.gallery.GalleryScreen
 import com.zayaanify.privagallery.presentation.lock.AppLockScreen
 import com.zayaanify.privagallery.presentation.ocrsearch.OcrSearchScreen
+import com.zayaanify.privagallery.presentation.recyclebin.RecycleBinScreen
 import com.zayaanify.privagallery.presentation.settings.SettingsScreen
 import com.zayaanify.privagallery.presentation.vault.VaultScreen
 import com.zayaanify.privagallery.presentation.viewer.PhotoViewerScreen
@@ -30,6 +31,7 @@ object Routes {
     const val OCR_SEARCH = "ocr_search"
     const val BACKUP = "backup"
     const val SETTINGS = "settings"
+    const val RECYCLE_BIN = "recycle_bin"
     const val ALBUM_DETAIL = "album_detail/{bucketId}/{albumName}"
     const val PHOTO_VIEWER = "photo_viewer/{bucketId}/{mediaStoreId}"
     const val VIDEO_PLAYER = "video_player/{videoUri}"
@@ -75,7 +77,8 @@ fun PrivaGalleryNavHost(
                 onCategoryClick = { navController.navigate(Routes.CATEGORY) },
                 onOcrSearchClick = { navController.navigate(Routes.OCR_SEARCH) },
                 onBackupClick = { navController.navigate(Routes.BACKUP) },
-                onSettingsClick = { navController.navigate(Routes.SETTINGS) }
+                onSettingsClick = { navController.navigate(Routes.SETTINGS) },
+                onRecycleBinClick = { navController.navigate(Routes.RECYCLE_BIN) }
             )
         }
 
@@ -101,6 +104,10 @@ fun PrivaGalleryNavHost(
 
         composable(Routes.SETTINGS) {
             SettingsScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Routes.RECYCLE_BIN) {
+            RecycleBinScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable(

@@ -3,28 +3,28 @@ package com.zayaanify.privagallery.data.local.mediastore
 import android.app.PendingIntent
 import android.content.ContentUris
 import android.content.Context
+import android.database.ContentObserver
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import com.zayaanify.privagallery.domain.model.Album
 import com.zayaanify.privagallery.domain.model.Photo
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Android-এর MediaStore থেকে সরাসরি ফটো/ভিডিও স্ক্যান করার লেয়ার।
- * এখানে কোনো ফাইল কপি বা মুভ হয় না — শুধু read-only কোয়েরি।
- *
- * Browse Mode পুরোপুরি এই ক্লাসের উপর নির্ভরশীল।
- */
 @Singleton
 class MediaStoreDataSource @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-
-    // ছবি ও ভিডিও দুটোই দরকার — তাই দুটো collection থেকেই কোয়েরি করতে হবে
     private val imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
     private val videosUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
@@ -41,7 +41,46 @@ class MediaStoreDataSource @Inject constructor(
         MediaStore.MediaColumns.BUCKET_DISPLAY_NAME
     )
 
-    /** ফোনের সব ছবি ও ভিডিও, নতুন থেকে পুরোনো ক্রমে — date_added দিয়ে সাজানো। */
+    /**
+     * MediaStore-এর যেকোনো পরিবর্তন (ডিলিট/যোগ/আপডেট) হলে
+     * অটোমেটিক নতুন ডেটা emit করবে।
+     */
+    fun observeAllPhotos(): Flow<List<Photo>> = callbackFlow {
+        // প্রথমবার লোড
+        launch { send(queryAllPhotos()) }
+
+        // ContentObserver — MediaStore বদলালে আবার query করবে
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                launch { send(queryAllPhotos()) }
+            }
+        }
+
+        context.contentResolver.registerContentObserver(imagesUri, true, observer)
+        context.contentResolver.registerContentObserver(videosUri, true, observer)
+
+        awaitClose {
+            context.contentResolver.unregisterContentObserver(observer)
+        }
+    }.conflate() // দ্রুত পরিবর্তন হলে শুধু সর্বশেষটা নেওয়া
+
+    fun observePhotosInBucket(bucketId: String): Flow<List<Photo>> = callbackFlow {
+        launch { send(queryPhotosInBucket(bucketId)) }
+
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                launch { send(queryPhotosInBucket(bucketId)) }
+            }
+        }
+
+        context.contentResolver.registerContentObserver(imagesUri, true, observer)
+        context.contentResolver.registerContentObserver(videosUri, true, observer)
+
+        awaitClose {
+            context.contentResolver.unregisterContentObserver(observer)
+        }
+    }.conflate()
+
     suspend fun queryAllPhotos(): List<Photo> = withContext(Dispatchers.IO) {
         val result = mutableListOf<Photo>()
         result += queryFromUri(imagesUri, isVideo = false)
@@ -49,12 +88,10 @@ class MediaStoreDataSource @Inject constructor(
         result.sortedByDescending { it.dateTakenMillis }
     }
 
-    /** একটা নির্দিষ্ট bucket (অ্যালবাম)-এর সব ছবি/ভিডিও। */
     suspend fun queryPhotosInBucket(bucketId: String): List<Photo> = withContext(Dispatchers.IO) {
         queryAllPhotos().filter { it.bucketId == bucketId }
     }
 
-    /** bucketId অনুযায়ী গ্রুপ করে অ্যালবাম লিস্ট বানানো — প্রতিটার কভার ও কাউন্ট সহ। */
     suspend fun queryAlbums(): List<Album> = withContext(Dispatchers.IO) {
         queryAllPhotos()
             .groupBy { it.bucketId }
@@ -62,7 +99,7 @@ class MediaStoreDataSource @Inject constructor(
                 Album(
                     bucketId = bucketId,
                     displayName = photos.first().bucketDisplayName,
-                    coverPhotoUri = photos.first().contentUri, // সবচেয়ে নতুন ফটোই কভার
+                    coverPhotoUri = photos.first().contentUri,
                     photoCount = photos.size
                 )
             }
@@ -88,10 +125,8 @@ class MediaStoreDataSource @Inject constructor(
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
                 val contentUri = ContentUris.withAppendedId(uri, id)
-
-                // date_taken অনেক সময় null থাকে (বিশেষত স্ক্রিনশটে), তখন date_added ব্যবহার করা হচ্ছে
                 val dateTaken = cursor.getLong(dateTakenCol)
-                val dateAdded = cursor.getLong(dateAddedCol) * 1000L // seconds -> millis
+                val dateAdded = cursor.getLong(dateAddedCol) * 1000L
                 val effectiveDate = if (dateTaken > 0) dateTaken else dateAdded
 
                 photos += Photo(
@@ -112,17 +147,9 @@ class MediaStoreDataSource @Inject constructor(
         return photos
     }
 
-    /**
-     * Android 11+ (API 30+) এ অ্যাপ নিজে অন্য অ্যাপের তোলা ফাইল সরাসরি ডিলিট করতে পারে না —
-     * MediaStore.createDeleteRequest() একটা PendingIntent দেয়, যা UI থেকে launch করলে
-     * সিস্টেম একটা কনফার্মেশন ডায়ালগ দেখায়। পুরনো ভার্সনে নাল রিটার্ন করি, কারণ সেখানে
-     * ContentResolver.delete() সরাসরি কল করা যায় (এটা রিপোজিটরি লেয়ারে হ্যান্ডল হবে)।
-     */
     fun createDeletePendingIntent(uris: List<android.net.Uri>): PendingIntent? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             MediaStore.createDeleteRequest(context.contentResolver, uris)
-        } else {
-            null
-        }
+        } else null
     }
 }

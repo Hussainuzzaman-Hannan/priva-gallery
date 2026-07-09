@@ -8,6 +8,7 @@ import com.zayaanify.privagallery.data.local.db.AppDatabase
 import com.zayaanify.privagallery.data.local.db.dao.AppLockDao
 import com.zayaanify.privagallery.data.local.db.dao.FavoritePhotoDao
 import com.zayaanify.privagallery.data.local.db.dao.PhotoTextIndexDao
+import com.zayaanify.privagallery.data.local.db.dao.RecycleBinDao
 import com.zayaanify.privagallery.data.local.db.dao.VaultPhotoDao
 import dagger.Module
 import dagger.Provides
@@ -54,6 +55,24 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS recycle_bin (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                originalMediaStoreId INTEGER NOT NULL,
+                filePath TEXT NOT NULL,
+                thumbnailPath TEXT NOT NULL,
+                displayName TEXT NOT NULL,
+                mimeType TEXT NOT NULL,
+                sizeBytes INTEGER NOT NULL,
+                dateTakenMillis INTEGER NOT NULL,
+                deletedAt INTEGER NOT NULL
+            )
+        """.trimIndent())
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -66,7 +85,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
     }
 
@@ -85,4 +104,8 @@ object DatabaseModule {
     @Provides
     fun providePhotoTextIndexDao(database: AppDatabase): PhotoTextIndexDao =
         database.photoTextIndexDao()
+
+    @Provides
+    fun provideRecycleBinDao(database: AppDatabase): RecycleBinDao =
+        database.recycleBinDao()
 }

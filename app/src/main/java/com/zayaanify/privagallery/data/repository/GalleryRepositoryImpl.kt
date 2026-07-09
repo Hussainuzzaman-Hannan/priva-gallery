@@ -1,6 +1,7 @@
 package com.zayaanify.privagallery.data.repository
 
 import android.app.PendingIntent
+import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
@@ -15,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,13 +28,24 @@ class GalleryRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : GalleryRepository {
 
-    override fun getAlbums(): Flow<List<Album>> = flow {
-        emit(mediaStoreDataSource.queryAlbums())
-    }
+    override fun getAlbums(): Flow<List<Album>> =
+        mediaStoreDataSource.observeAllPhotos().map { photos ->
+            photos
+                .groupBy { it.bucketId }
+                .map { (bucketId, bucketPhotos) ->
+                    Album(
+                        bucketId = bucketId,
+                        displayName = bucketPhotos.first().bucketDisplayName,
+                        coverPhotoUri = bucketPhotos.first().contentUri,
+                        photoCount = bucketPhotos.size
+                    )
+                }
+                .sortedByDescending { it.photoCount }
+        }
 
     override fun getPhotosInAlbum(bucketId: String): Flow<List<Photo>> {
         return favoritePhotoDao.getAllFavoriteIds().combine(
-            flow { emit(mediaStoreDataSource.queryPhotosInBucket(bucketId)) }
+            mediaStoreDataSource.observePhotosInBucket(bucketId)
         ) { favoriteIds, photos ->
             val favoriteSet = favoriteIds.toSet()
             photos.map { it.copy(isFavorite = it.mediaStoreId in favoriteSet) }
@@ -41,7 +54,7 @@ class GalleryRepositoryImpl @Inject constructor(
 
     override fun getFavoritePhotos(): Flow<List<Photo>> {
         return favoritePhotoDao.getAllFavoriteIds().combine(
-            flow { emit(mediaStoreDataSource.queryAllPhotos()) }
+            mediaStoreDataSource.observeAllPhotos()
         ) { favoriteIds, allPhotos ->
             val favoriteSet = favoriteIds.toSet()
             allPhotos.filter { it.mediaStoreId in favoriteSet }
@@ -60,15 +73,36 @@ class GalleryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun requestDeletePhotos(mediaStoreIds: List<Long>): PendingIntent? {
-        val uris: List<Uri> = mediaStoreIds.map {
-            // আমরা জানি না কোনটা ইমেজ কোনটা ভিডিও, তাই দুটো বেস URI-ই ট্রাই করতে হবে।
-            // সিম্পল করার জন্য images URI ব্যবহার করছি — content resolver উভয় ক্ষেত্রেই
-            // সঠিক row resolve করতে পারে কারণ _ID গ্লোবালি ইউনিক না হলেও practically এটা কাজ করে
-            // external content URI দিয়ে। ভিডিওর জন্য আলাদা মার্ক রাখা থাকলে এখানে ভাগ করা যেত।
-            android.content.ContentUris.withAppendedId(
-                MediaStore.Files.getContentUri("external"), it
+        val uris = mutableListOf<Uri>()
+
+        mediaStoreIds.forEach { id ->
+            val imageUri = ContentUris.withAppendedId(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
             )
+            val videoUri = ContentUris.withAppendedId(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id
+            )
+
+            val isImage = context.contentResolver.query(
+                imageUri,
+                arrayOf(MediaStore.MediaColumns._ID),
+                null, null, null
+            )?.use { it.count > 0 } ?: false
+
+            if (isImage) {
+                uris.add(imageUri)
+            } else {
+                val isVideo = context.contentResolver.query(
+                    videoUri,
+                    arrayOf(MediaStore.MediaColumns._ID),
+                    null, null, null
+                )?.use { it.count > 0 } ?: false
+
+                if (isVideo) uris.add(videoUri)
+            }
         }
+
+        if (uris.isEmpty()) return null
         return mediaStoreDataSource.createDeletePendingIntent(uris)
     }
 }
