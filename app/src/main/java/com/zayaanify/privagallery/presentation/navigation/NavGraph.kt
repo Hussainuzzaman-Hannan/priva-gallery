@@ -1,5 +1,6 @@
 package com.zayaanify.privagallery.presentation.navigation
 
+import com.zayaanify.privagallery.presentation.vault.VaultLockScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -83,6 +84,16 @@ fun PrivaGalleryNavHost(
         }
 
         composable(Routes.VAULT) {
+            VaultLockScreen(
+                onUnlocked = {
+                    navController.navigate("vault_content") {
+                        popUpTo(Routes.VAULT) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        composable("vault_content") {
             VaultScreen(onBackClick = { navController.popBackStack() })
         }
 

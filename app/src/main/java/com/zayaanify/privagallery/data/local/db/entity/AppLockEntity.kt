@@ -9,5 +9,9 @@ data class AppLockEntity(
     val pinHash: String?,
     val salt: String?,
     val isLockEnabled: Boolean = false,
-    val biometricEnabled: Boolean = false   // ← নতুন field
+    val biometricEnabled: Boolean = false,
+    // Vault আলাদা PIN
+    val vaultPinHash: String? = null,
+    val vaultSalt: String? = null,
+    val vaultBiometricEnabled: Boolean = false
 )

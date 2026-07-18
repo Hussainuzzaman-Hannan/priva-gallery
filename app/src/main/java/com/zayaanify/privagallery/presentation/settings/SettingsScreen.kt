@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,42 +55,22 @@ fun SettingsScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            // অ্যাপ লক সেকশন
             Text(
-                "নিরাপত্তা",
+                "অ্যাপ লক",
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary
             )
-
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Biometric toggle — শুধু available থাকলে দেখাবে
             if (uiState.isBiometricAvailable) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Fingerprint,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 12.dp)
-                    ) {
-                        Text("Biometric আনলক")
-                        Text(
-                            "Fingerprint বা Face দিয়ে আনলক করুন",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = uiState.isBiometricEnabled,
-                        onCheckedChange = { viewModel.setBiometricEnabled(it) }
-                    )
-                }
+                SettingsToggleRow(
+                    icon = Icons.Default.Fingerprint,
+                    title = "Biometric আনলক",
+                    subtitle = "Fingerprint বা Face দিয়ে অ্যাপ আনলক করুন",
+                    checked = uiState.isBiometricEnabled,
+                    onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                )
             } else {
                 Text(
                     "এই ডিভাইসে Biometric সেট করা নেই",
@@ -96,6 +78,64 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Vault সেকশন
+            Text(
+                "Vault",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (uiState.isBiometricAvailable) {
+                SettingsToggleRow(
+                    icon = Icons.Default.Lock,
+                    title = "Vault Biometric আনলক",
+                    subtitle = "Fingerprint বা Face দিয়ে Vault খুলুন",
+                    checked = uiState.isBiometricEnabled,
+                    onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun SettingsToggleRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp)
+        ) {
+            Text(title)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
     }
 }

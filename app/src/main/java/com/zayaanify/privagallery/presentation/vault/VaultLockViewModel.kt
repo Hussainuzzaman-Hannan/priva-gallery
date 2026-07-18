@@ -1,4 +1,4 @@
-package com.zayaanify.privagallery.presentation.lock
+package com.zayaanify.privagallery.presentation.vault
 
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
@@ -10,68 +10,63 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class LockScreenMode { SETUP, UNLOCK }
+enum class VaultLockMode { SETUP, UNLOCK }
 
-data class AppLockUiState(
-    val mode: LockScreenMode = LockScreenMode.UNLOCK,
+data class VaultLockUiState(
+    val mode: VaultLockMode = VaultLockMode.UNLOCK,
     val enteredPin: String = "",
     val confirmPin: String = "",
     val isConfirmStep: Boolean = false,
     val errorMessage: String? = null,
     val isUnlocked: Boolean = false,
-    val isCheckingInitialState: Boolean = true,
-    val isBiometricEnabled: Boolean = false,
-    val isBiometricAvailable: Boolean = false
+    val isChecking: Boolean = true,
+    val isBiometricAvailable: Boolean = false,
+    val isBiometricEnabled: Boolean = false
 )
 
 @HiltViewModel
-class AppLockViewModel @Inject constructor(
+class VaultLockViewModel @Inject constructor(
     private val appLockRepository: AppLockRepository,
     private val biometricHelper: BiometricHelper
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AppLockUiState())
-    val uiState: StateFlow<AppLockUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(VaultLockUiState())
+    val uiState: StateFlow<VaultLockUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            try {
-                val hasPin = appLockRepository.hasPinSet()
-                val isBiometricAvailable = biometricHelper.isBiometricAvailable()
+            val hasVaultPin = appLockRepository.hasVaultPinSet()
+            val isBiometricAvailable = biometricHelper.isBiometricAvailable()
+            val isBiometricEnabled = appLockRepository.isVaultBiometricEnabled()
+                .let { flow ->
+                    var result = false
+                    flow.collect {
+                        result = it
+                        return@collect
+                    }
+                    result
+                }
 
-                _uiState.value = _uiState.value.copy(
-                    mode = if (hasPin) LockScreenMode.UNLOCK else LockScreenMode.SETUP,
-                    isCheckingInitialState = false,
-                    isBiometricAvailable = isBiometricAvailable
-                )
-            } catch (e: Exception) {
-                // কোনো কারণে DB/biometric চেক ব্যর্থ হলেও যেন UI চিরস্থায়ী
-                // স্পিনারে আটকে না থাকে — নিরাপদ ডিফল্ট হিসেবে PIN entry দেখানো হবে।
-                _uiState.value = _uiState.value.copy(
-                    mode = LockScreenMode.UNLOCK,
-                    isCheckingInitialState = false,
-                    isBiometricAvailable = false
-                )
+            _uiState.value = _uiState.value.copy(
+                mode = if (hasVaultPin) VaultLockMode.UNLOCK else VaultLockMode.SETUP,
+                isChecking = false,
+                isBiometricAvailable = isBiometricAvailable,
+                isBiometricEnabled = isBiometricEnabled
+            )
+
+            // Biometric enabled থাকলে অটো prompt
+            if (hasVaultPin && isBiometricEnabled && isBiometricAvailable) {
+                _uiState.value = _uiState.value.copy(isBiometricEnabled = true)
             }
         }
-
-        // Biometric enabled স্ট্যাটাস observe করা
-        appLockRepository.isBiometricEnabled()
-            .onEach { enabled ->
-                _uiState.value = _uiState.value.copy(isBiometricEnabled = enabled)
-            }
-            .launchIn(viewModelScope)
     }
 
     fun onDigitPress(digit: String) {
         val current = _uiState.value
-        if (current.mode == LockScreenMode.SETUP && current.isConfirmStep) {
+        if (current.mode == VaultLockMode.SETUP && current.isConfirmStep) {
             if (current.confirmPin.length < 4) {
                 onConfirmPinChanged(current.confirmPin + digit)
             }
@@ -84,7 +79,7 @@ class AppLockViewModel @Inject constructor(
 
     fun onBackspace() {
         val current = _uiState.value
-        if (current.mode == LockScreenMode.SETUP && current.isConfirmStep) {
+        if (current.mode == VaultLockMode.SETUP && current.isConfirmStep) {
             onConfirmPinChanged(current.confirmPin.dropLast(1))
         } else {
             onPinChanged(current.enteredPin.dropLast(1))
@@ -95,8 +90,9 @@ class AppLockViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(enteredPin = pin, errorMessage = null)
         if (pin.length == 4) {
             when (_uiState.value.mode) {
-                LockScreenMode.SETUP -> moveToConfirmStep()
-                LockScreenMode.UNLOCK -> verifyAndUnlock(pin)
+                VaultLockMode.SETUP -> _uiState.value =
+                    _uiState.value.copy(isConfirmStep = true)
+                VaultLockMode.UNLOCK -> verifyAndUnlock(pin)
             }
         }
     }
@@ -106,15 +102,11 @@ class AppLockViewModel @Inject constructor(
         if (pin.length == 4) confirmSetup()
     }
 
-    private fun moveToConfirmStep() {
-        _uiState.value = _uiState.value.copy(isConfirmStep = true)
-    }
-
     private fun confirmSetup() {
         val current = _uiState.value
         if (current.enteredPin == current.confirmPin) {
             viewModelScope.launch {
-                appLockRepository.setPin(current.enteredPin)
+                appLockRepository.setVaultPin(current.enteredPin)
                 _uiState.value = current.copy(isUnlocked = true)
             }
         } else {
@@ -129,7 +121,7 @@ class AppLockViewModel @Inject constructor(
 
     private fun verifyAndUnlock(pin: String) {
         viewModelScope.launch {
-            val isCorrect = appLockRepository.verifyPin(pin)
+            val isCorrect = appLockRepository.verifyVaultPin(pin)
             if (isCorrect) {
                 _uiState.value = _uiState.value.copy(isUnlocked = true)
             } else {
@@ -141,12 +133,11 @@ class AppLockViewModel @Inject constructor(
         }
     }
 
-    /** Biometric prompt দেখানো — activity reference দরকার। */
     fun showBiometricPrompt(activity: FragmentActivity) {
         biometricHelper.showPrompt(
             activity = activity,
-            title = "PrivaGallery আনলক",
-            subtitle = "Fingerprint বা Face দিয়ে আনলক করুন"
+            title = "Vault আনলক",
+            subtitle = "Fingerprint বা Face দিয়ে Vault খুলুন"
         ) { result ->
             when (result) {
                 is BiometricResult.Success -> {
@@ -154,23 +145,16 @@ class AppLockViewModel @Inject constructor(
                 }
                 is BiometricResult.Failed -> {
                     _uiState.value = _uiState.value.copy(
-                        errorMessage = "Biometric যাচাই ব্যর্থ হয়েছে"
+                        errorMessage = "Biometric যাচাই ব্যর্থ"
                     )
                 }
                 is BiometricResult.Error -> {
-                    // User cancel করলে error আসে — PIN দিয়ে চেষ্টার সুযোগ দেওয়া
                     _uiState.value = _uiState.value.copy(
                         errorMessage = if (result.message.contains("cancel", ignoreCase = true))
                             null else result.message
                     )
                 }
             }
-        }
-    }
-
-    fun setBiometricEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            appLockRepository.setBiometricEnabled(enabled)
         }
     }
 }

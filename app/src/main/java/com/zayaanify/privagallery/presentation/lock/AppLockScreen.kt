@@ -21,15 +21,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 @Composable
 fun AppLockScreen(
@@ -38,21 +43,37 @@ fun AppLockScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(uiState.isUnlocked) {
         if (uiState.isUnlocked) onUnlocked()
     }
 
-    // Unlock মোডে biometric available থাকলে অটো prompt দেখানো
-    LaunchedEffect(uiState.isCheckingInitialState, uiState.isBiometricEnabled) {
-        if (!uiState.isCheckingInitialState &&
-            uiState.mode == LockScreenMode.UNLOCK &&
-            uiState.isBiometricEnabled &&
-            uiState.isBiometricAvailable
-        ) {
-            val activity = context as? FragmentActivity
-            activity?.let { viewModel.showBiometricPrompt(it) }
+    // Unlock মোডে biometric available থাকলে অটো prompt দেখানো।
+    // এটা এখন Activity-র ON_RESUME lifecycle event-এর সাথে সিঙ্ক করে চলে —
+    // আগে শুধু state পরিবর্তনের ভিত্তিতে (LaunchedEffect) কল হতো, যেটা
+    // ব্যাকগ্রাউন্ড থেকে ফেরার সময় Activity পুরোপুরি resumed/window-focused
+    // হওয়ার আগেই BiometricPrompt.authenticate() কল করে ফেলতে পারত —
+    // ফলে সিস্টেম প্রম্পট silently দেখাতে ব্যর্থ হয়ে কোনো callback ছাড়াই
+    // UI স্পিনার/আটকে থাকা অবস্থায় থেকে যেত।
+    val currentUiState = rememberUpdatedState(uiState)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val state = currentUiState.value
+                if (!state.isCheckingInitialState &&
+                    !state.isUnlocked &&
+                    state.mode == LockScreenMode.UNLOCK &&
+                    state.isBiometricEnabled &&
+                    state.isBiometricAvailable
+                ) {
+                    val activity = context as? FragmentActivity
+                    activity?.let { viewModel.showBiometricPrompt(it) }
+                }
+            }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     if (uiState.isCheckingInitialState) {
