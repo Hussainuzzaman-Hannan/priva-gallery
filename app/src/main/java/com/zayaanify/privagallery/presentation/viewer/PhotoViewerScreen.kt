@@ -2,31 +2,46 @@ package com.zayaanify.privagallery.presentation.viewer
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -47,14 +62,34 @@ import com.zayaanify.privagallery.domain.model.Photo
 import kotlin.math.max
 import kotlin.math.min
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    androidx.compose.foundation.ExperimentalFoundationApi::class
+)
 @Composable
 fun PhotoViewerScreen(
     onBackClick: () -> Unit,
+    onEditClick: (String) -> Unit,      // ← ইন-অ্যাপ এডিটরে যাওয়ার জন্য
     viewModel: PhotoViewerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+
+    val deleteLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) {
+        viewModel.onDeleteConfirmed()
+    }
+
+    LaunchedEffect(uiState.deletePendingIntent) {
+        uiState.deletePendingIntent?.let { pendingIntent ->
+            val request = androidx.activity.result.IntentSenderRequest
+                .Builder(pendingIntent.intentSender).build()
+            deleteLauncher.launch(request)
+        }
+    }
 
     if (uiState.isLoading || uiState.photos.isEmpty()) {
         Box(
@@ -66,12 +101,58 @@ fun PhotoViewerScreen(
         return
     }
 
-    val pagerState = rememberPagerState(
-        initialPage = uiState.initialIndex,
-        pageCount = { uiState.photos.size }
-    )
+    val currentPhoto = uiState.photos[uiState.currentIndex]
 
-    val currentPhoto = uiState.photos[pagerState.currentPage]
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("ছবি মুছবেন?") },
+            text = { Text("এই ছবিটা Recycle Bin-এ যাবে।") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    viewModel.deleteCurrentPhoto()
+                }) {
+                    Text("মুছুন", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("বাতিল")
+                }
+            }
+        )
+    }
+
+    if (showInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showInfoDialog = false },
+            title = { Text("ছবির তথ্য") },
+            text = {
+                Column {
+                    InfoRow("নাম", currentPhoto.displayName)
+                    InfoRow("ধরন", currentPhoto.mimeType)
+                    InfoRow("সাইজ", formatBytes(currentPhoto.sizeBytes))
+                    InfoRow(
+                        "রেজুলেশন",
+                        "${currentPhoto.width} × ${currentPhoto.height}"
+                    )
+                    InfoRow(
+                        "তারিখ",
+                        java.text.SimpleDateFormat(
+                            "dd MMM yyyy, hh:mm a",
+                            java.util.Locale.getDefault()
+                        ).format(java.util.Date(currentPhoto.dateTakenMillis))
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = false }) {
+                    Text("ঠিক আছে")
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = Color.Black,
@@ -79,7 +160,7 @@ fun PhotoViewerScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "${pagerState.currentPage + 1} / ${uiState.photos.size}",
+                        text = "${uiState.currentIndex + 1} / ${uiState.photos.size}",
                         color = Color.White
                     )
                 },
@@ -98,7 +179,8 @@ fun PhotoViewerScreen(
                     }) {
                         Icon(
                             imageVector = if (currentPhoto.isFavorite)
-                                Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                Icons.Default.Favorite
+                            else Icons.Default.FavoriteBorder,
                             contentDescription = "ফেভারিট",
                             tint = if (currentPhoto.isFavorite) Color.Red else Color.White
                         )
@@ -120,13 +202,79 @@ fun PhotoViewerScreen(
                             tint = Color.White
                         )
                     }
+                    IconButton(onClick = { showInfoDialog = true }) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = "তথ্য",
+                            tint = Color.White
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black.copy(alpha = 0.6f)
                 )
             )
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .padding(horizontal = 32.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Edit বাটন — ইন-অ্যাপ এডিটরে যাবে
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = { onEditClick(currentPhoto.contentUri) },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "এডিট",
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    Text(
+                        "এডিট",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+
+                // Delete বাটন
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "ডিলিট",
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    Text(
+                        "ডিলিট",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
         }
     ) { _ ->
+        val pagerState = rememberPagerState(
+            initialPage = uiState.initialIndex,
+            pageCount = { uiState.photos.size }
+        )
+
+        LaunchedEffect(pagerState.currentPage) {
+            viewModel.onPageChanged(pagerState.currentPage)
+        }
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
@@ -134,10 +282,38 @@ fun PhotoViewerScreen(
                 state = pagerState,
                 pagerSnapDistance = PagerSnapDistance.atMost(1)
             ),
-            pageSpacing = 16.dp,
+            pageSpacing = 16.dp
         ) { page ->
             ZoomablePhoto(photo = uiState.photos[page])
         }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+private fun formatBytes(bytes: Long): String {
+    return when {
+        bytes >= 1_000_000 -> "%.1f MB".format(bytes / 1_000_000.0)
+        bytes >= 1_000 -> "%.1f KB".format(bytes / 1_000.0)
+        else -> "$bytes B"
     }
 }
 
@@ -176,8 +352,6 @@ private fun ZoomablePhoto(photo: Photo) {
                 )
             }
             .pointerInput(isZoomed) {
-                // শুধু zoom অবস্থায় pan gesture নেওয়া
-                // isZoomed = false হলে Pager swipe করতে পারবে
                 if (isZoomed) {
                     detectTransformGestures { _, pan, zoom, _ ->
                         val newScale = max(1f, min(scale * zoom, 5f))

@@ -1,6 +1,5 @@
 package com.zayaanify.privagallery.presentation.navigation
 
-import com.zayaanify.privagallery.presentation.vault.VaultLockScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,11 +11,13 @@ import com.zayaanify.privagallery.presentation.albumdetail.AlbumDetailScreen
 import com.zayaanify.privagallery.presentation.backup.BackupScreen
 import com.zayaanify.privagallery.presentation.category.CategoryScreen
 import com.zayaanify.privagallery.presentation.duplicate.DuplicateScreen
+import com.zayaanify.privagallery.presentation.editor.PhotoEditorScreen
 import com.zayaanify.privagallery.presentation.gallery.GalleryScreen
 import com.zayaanify.privagallery.presentation.lock.AppLockScreen
 import com.zayaanify.privagallery.presentation.ocrsearch.OcrSearchScreen
 import com.zayaanify.privagallery.presentation.recyclebin.RecycleBinScreen
 import com.zayaanify.privagallery.presentation.settings.SettingsScreen
+import com.zayaanify.privagallery.presentation.vault.VaultLockScreen
 import com.zayaanify.privagallery.presentation.vault.VaultScreen
 import com.zayaanify.privagallery.presentation.viewer.PhotoViewerScreen
 import com.zayaanify.privagallery.presentation.viewer.VideoPlayerScreen
@@ -36,6 +37,7 @@ object Routes {
     const val ALBUM_DETAIL = "album_detail/{bucketId}/{albumName}"
     const val PHOTO_VIEWER = "photo_viewer/{bucketId}/{mediaStoreId}"
     const val VIDEO_PLAYER = "video_player/{videoUri}"
+    const val PHOTO_EDITOR = "photo_editor/{photoUri}"
 
     fun albumDetail(bucketId: String, albumName: String): String {
         val encodedName = URLEncoder.encode(albumName, "UTF-8")
@@ -49,6 +51,11 @@ object Routes {
     fun videoPlayer(videoUri: String): String {
         val encodedUri = URLEncoder.encode(videoUri, "UTF-8")
         return "video_player/$encodedUri"
+    }
+
+    fun photoEditor(photoUri: String): String {
+        val encodedUri = URLEncoder.encode(photoUri, "UTF-8")
+        return "photo_editor/$encodedUri"
     }
 }
 
@@ -147,7 +154,12 @@ fun PrivaGalleryNavHost(
                 navArgument("mediaStoreId") { type = NavType.LongType }
             )
         ) {
-            PhotoViewerScreen(onBackClick = { navController.popBackStack() })
+            PhotoViewerScreen(
+                onBackClick = { navController.popBackStack() },
+                onEditClick = { photoUri ->
+                    navController.navigate(Routes.photoEditor(photoUri))
+                }
+            )
         }
 
         composable(
@@ -160,6 +172,19 @@ fun PrivaGalleryNavHost(
             val videoUri = URLDecoder.decode(encodedUri, "UTF-8")
             VideoPlayerScreen(
                 videoUri = videoUri,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Routes.PHOTO_EDITOR,
+            arguments = listOf(
+                navArgument("photoUri") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val encodedUri = backStackEntry.arguments?.getString("photoUri") ?: ""
+            val photoUri = URLDecoder.decode(encodedUri, "UTF-8")
+            PhotoEditorScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }
