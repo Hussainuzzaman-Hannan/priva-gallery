@@ -70,7 +70,7 @@ fun GalleryScreen(
                     IconButton(onClick = onOcrSearchClick) {
                         Icon(
                             imageVector = Icons.Default.ManageSearch,
-                            contentDescription = "স্ক্রিনশট সার্চ"
+                            contentDescription = "Screenshot Search"
                         )
                     }
                     IconButton(onClick = onCategoryClick) {
@@ -194,7 +194,7 @@ private fun AlbumGridItem(album: Album, onClick: () -> Unit) {
             modifier = Modifier.padding(top = 6.dp, start = 2.dp)
         )
         Text(
-            text = "${album.photoCount} আইটেম",
+            text = "${album.photoCount} Item",
             maxLines = 1,
             modifier = Modifier.padding(start = 2.dp)
         )

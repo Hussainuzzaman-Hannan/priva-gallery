@@ -122,7 +122,7 @@ class AppLockViewModel @Inject constructor(
                 enteredPin = "",
                 confirmPin = "",
                 isConfirmStep = false,
-                errorMessage = "PIN মিলেনি, আবার চেষ্টা করুন"
+                errorMessage = "PIN মিলেনি, Try Again"
             )
         }
     }
@@ -135,7 +135,7 @@ class AppLockViewModel @Inject constructor(
             } else {
                 _uiState.value = _uiState.value.copy(
                     enteredPin = "",
-                    errorMessage = "ভুল PIN, আবার চেষ্টা করুন"
+                    errorMessage = "ভুল PIN, Try Again"
                 )
             }
         }
@@ -145,8 +145,8 @@ class AppLockViewModel @Inject constructor(
     fun showBiometricPrompt(activity: FragmentActivity) {
         biometricHelper.showPrompt(
             activity = activity,
-            title = "PrivaGallery আনলক",
-            subtitle = "Fingerprint বা Face দিয়ে আনলক করুন"
+            title = "PrivaGallery Unlock",
+            subtitle = "unlock with fingerprint or face"
         ) { result ->
             when (result) {
                 is BiometricResult.Success -> {

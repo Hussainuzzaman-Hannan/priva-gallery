@@ -91,10 +91,10 @@ private fun PermissionDeniedScreen(onRetry: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("ছবি দেখার জন্য মিডিয়া পারমিশন প্রয়োজন")
+            Text("Media permission is required to view photos")
             Spacer(modifier = Modifier.padding(8.dp))
             Button(onClick = onRetry) {
-                Text("আবার চেষ্টা করুন")
+                Text("Try Again")
             }
         }
     }

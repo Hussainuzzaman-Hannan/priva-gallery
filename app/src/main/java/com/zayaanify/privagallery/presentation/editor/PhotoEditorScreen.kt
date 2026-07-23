@@ -103,7 +103,7 @@ fun PhotoEditorScreen(
         containerColor = Color.Black,
         topBar = {
             TopAppBar(
-                title = { Text("এডিট", color = Color.White) },
+                title = { Text("Edit", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -257,7 +257,7 @@ fun PhotoEditorScreen(
                 uiState.editedBitmap != null -> {
                     Image(
                         bitmap = uiState.editedBitmap!!.asImageBitmap(),
-                        contentDescription = "এডিট প্রিভিউ",
+                        contentDescription = "Edit প্রিভিউ",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize()
                     )

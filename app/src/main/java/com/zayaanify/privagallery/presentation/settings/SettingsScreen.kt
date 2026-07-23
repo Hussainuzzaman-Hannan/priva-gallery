@@ -66,8 +66,8 @@ fun SettingsScreen(
             if (uiState.isBiometricAvailable) {
                 SettingsToggleRow(
                     icon = Icons.Default.Fingerprint,
-                    title = "Biometric আনলক",
-                    subtitle = "Fingerprint বা Face দিয়ে অ্যাপ আনলক করুন",
+                    title = "Biometric Unlock",
+                    subtitle = "Fingerprint বা Face দিয়ে অ্যাপ Unlock করুন",
                     checked = uiState.isBiometricEnabled,
                     onCheckedChange = { viewModel.setBiometricEnabled(it) }
                 )
@@ -94,7 +94,7 @@ fun SettingsScreen(
             if (uiState.isBiometricAvailable) {
                 SettingsToggleRow(
                     icon = Icons.Default.Lock,
-                    title = "Vault Biometric আনলক",
+                    title = "Vault Biometric Unlock",
                     subtitle = "Fingerprint বা Face দিয়ে Vault খুলুন",
                     checked = uiState.isBiometricEnabled,
                     onCheckedChange = { viewModel.setBiometricEnabled(it) }

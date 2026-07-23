@@ -113,7 +113,7 @@ class BackupRepositoryImpl @Inject constructor(
                         }
                     }
                 }
-            } ?: return@withContext Result.failure(Exception("ফাইল খোলা যায়নি"))
+            } ?: return@withContext Result.failure(Exception("Could not open file"))
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -197,7 +197,7 @@ class BackupRepositoryImpl @Inject constructor(
                         }
                     }
                 }
-            } ?: return@withContext Result.failure(Exception("ফাইল খোলা যায়নি"))
+            } ?: return@withContext Result.failure(Exception("Could not open file"))
 
             Result.success(Unit)
         } catch (e: Exception) {

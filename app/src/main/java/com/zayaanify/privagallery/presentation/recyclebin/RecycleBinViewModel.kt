@@ -40,7 +40,7 @@ class RecycleBinViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
 
-        // মেয়াদ শেষ আইটেম পরিষ্কার করা
+        // মেয়াদ শেষ Item পরিষ্কার করা
         viewModelScope.launch {
             recycleBinRepository.deleteExpiredItems()
         }

@@ -122,7 +122,7 @@ class PhotoEditorViewModel @Inject constructor(
                 }
             } ?: return@launch
 
-            // ক্রপ করা ছবিকে নতুন base হিসেবে সেট করা
+            // ক্রপ করা ছবিকে New base হিসেবে সেট করা
             _uiState.value = _uiState.value.copy(
                 originalBitmap = bitmap,
                 editedBitmap = bitmap,

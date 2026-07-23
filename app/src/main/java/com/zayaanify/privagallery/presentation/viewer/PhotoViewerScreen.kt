@@ -69,7 +69,7 @@ import kotlin.math.min
 @Composable
 fun PhotoViewerScreen(
     onBackClick: () -> Unit,
-    onEditClick: (String) -> Unit,      // ← ইন-অ্যাপ এডিটরে যাওয়ার জন্য
+    onEditClick: (String) -> Unit,      // ← ইন-অ্যাপ Editরে যাওয়ার জন্য
     viewModel: PhotoViewerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -107,7 +107,7 @@ fun PhotoViewerScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Delete Photo??") },
-            text = { Text("এই ছবিটা Recycle Bin-এ যাবে।") },
+            text = { Text("This photo will go to the Recycle Bin.") },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
@@ -127,18 +127,18 @@ fun PhotoViewerScreen(
     if (showInfoDialog) {
         AlertDialog(
             onDismissRequest = { showInfoDialog = false },
-            title = { Text("ছবির তথ্য") },
+            title = { Text("ছবির Info") },
             text = {
                 Column {
                     InfoRow("Name", currentPhoto.displayName)
-                    InfoRow("ধরন", currentPhoto.mimeType)
-                    InfoRow("সাইজ", formatBytes(currentPhoto.sizeBytes))
+                    InfoRow("Type", currentPhoto.mimeType)
+                    InfoRow("Size", formatBytes(currentPhoto.sizeBytes))
                     InfoRow(
-                        "রেজুলেশন",
+                        "Resolution",
                         "${currentPhoto.width} × ${currentPhoto.height}"
                     )
                     InfoRow(
-                        "তারিখ",
+                        "Date",
                         java.text.SimpleDateFormat(
                             "dd MMM yyyy, hh:mm a",
                             java.util.Locale.getDefault()
@@ -148,7 +148,7 @@ fun PhotoViewerScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showInfoDialog = false }) {
-                    Text("ঠিক আছে")
+                    Text("OK")
                 }
             }
         )
@@ -181,7 +181,7 @@ fun PhotoViewerScreen(
                             imageVector = if (currentPhoto.isFavorite)
                                 Icons.Default.Favorite
                             else Icons.Default.FavoriteBorder,
-                            contentDescription = "ফেভারিট",
+                            contentDescription = "Favorite",
                             tint = if (currentPhoto.isFavorite) Color.Red else Color.White
                         )
                     }
@@ -205,7 +205,7 @@ fun PhotoViewerScreen(
                     IconButton(onClick = { showInfoDialog = true }) {
                         Icon(
                             Icons.Default.Info,
-                            contentDescription = "তথ্য",
+                            contentDescription = "Info",
                             tint = Color.White
                         )
                     }
@@ -224,7 +224,7 @@ fun PhotoViewerScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Edit বাটন — ইন-অ্যাপ এডিটরে যাবে
+                // Edit বাটন — ইন-অ্যাপ Editরে যাবে
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     IconButton(
                         onClick = { onEditClick(currentPhoto.contentUri) },
@@ -232,13 +232,13 @@ fun PhotoViewerScreen(
                     ) {
                         Icon(
                             Icons.Default.Edit,
-                            contentDescription = "এডিট",
+                            contentDescription = "Edit",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
                     }
                     Text(
-                        "এডিট",
+                        "Edit",
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall
                     )
@@ -252,13 +252,13 @@ fun PhotoViewerScreen(
                     ) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = "ডিলিট",
+                            contentDescription = "Delete",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
                     }
                     Text(
-                        "ডিলিট",
+                        "Delete",
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall
                     )

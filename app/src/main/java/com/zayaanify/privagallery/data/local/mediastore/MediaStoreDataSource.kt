@@ -42,8 +42,8 @@ class MediaStoreDataSource @Inject constructor(
     )
 
     /**
-     * MediaStore-এর যেকোনো পরিবর্তন (ডিলিট/যোগ/আপডেট) হলে
-     * অটোমেটিক নতুন ডেটা emit করবে।
+     * MediaStore-এর যেকোনো পরিবর্তন (Delete/যোগ/আপডেট) হলে
+     * অটোমেটিক New ডেটা emit করবে।
      */
     fun observeAllPhotos(): Flow<List<Photo>> = callbackFlow {
         // প্রথমবার লোড

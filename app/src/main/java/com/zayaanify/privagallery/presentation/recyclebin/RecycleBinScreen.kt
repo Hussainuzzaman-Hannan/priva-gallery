@@ -96,7 +96,7 @@ fun RecycleBinScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("স্থায়ীভাবে ডিলিট করবেন?") },
+            title = { Text("স্থায়ীভাবে Delete করবেন?") },
             text = {
                 Text(
                     "${uiState.selectedIds.size} টা ফটো স্থায়ীভাবে মুছে যাবে। " +
@@ -108,7 +108,7 @@ fun RecycleBinScreen(
                     showDeleteDialog = false
                     viewModel.deleteSelectedPermanently()
                 }) {
-                    Text("ডিলিট করুন", color = MaterialTheme.colorScheme.error)
+                    Text("Delete করুন", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -137,7 +137,7 @@ fun RecycleBinScreen(
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 Icons.Default.DeleteForever,
-                                contentDescription = "স্থায়ীভাবে ডিলিট",
+                                contentDescription = "স্থায়ীভাবে Delete",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }

@@ -35,7 +35,7 @@ interface VaultRepository {
     suspend fun restoreFromVault(vaultPhotoId: Long): Result<Unit>
 
     /**
-     * Vault থেকে ফটো সম্পূর্ণ ডিলিট করা (restore না করে):
+     * Vault থেকে ফটো সম্পূর্ণ Delete করা (restore না করে):
      * এনক্রিপ্টেড ফাইল secure delete + DB entry মুছে ফেলা।
      * একবার করলে ফটো আর ফিরে পাওয়া যাবে না।
      */

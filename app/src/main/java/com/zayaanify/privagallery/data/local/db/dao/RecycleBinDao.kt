@@ -25,7 +25,7 @@ interface RecycleBinDao {
     @Query("DELETE FROM recycle_bin")
     suspend fun deleteAll()
 
-    // 30 দিনের বেশি পুরোনো আইটেম
+    // 30 দিনের বেশি পুরোনো Item
     @Query("SELECT * FROM recycle_bin WHERE deletedAt < :cutoffTime")
     suspend fun getExpiredItems(cutoffTime: Long): List<RecycleBinEntity>
 }

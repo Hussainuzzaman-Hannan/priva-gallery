@@ -86,7 +86,7 @@ fun AppLockScreen(
     val title = when {
         uiState.mode == LockScreenMode.SETUP && !uiState.isConfirmStep -> "একটা PIN সেট করুন"
         uiState.mode == LockScreenMode.SETUP && uiState.isConfirmStep -> "PIN আবার লিখুন"
-        else -> "PIN দিয়ে আনলক করুন"
+        else -> "PIN দিয়ে Unlock করুন"
     }
 
     val activePin = if (uiState.mode == LockScreenMode.SETUP && uiState.isConfirmStep) {
@@ -132,7 +132,7 @@ fun AppLockScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Fingerprint,
-                    contentDescription = "Biometric আনলক",
+                    contentDescription = "Biometric Unlock",
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )

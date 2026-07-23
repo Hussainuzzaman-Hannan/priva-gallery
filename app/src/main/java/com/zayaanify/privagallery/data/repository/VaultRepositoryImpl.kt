@@ -86,7 +86,7 @@ class VaultRepositoryImpl @Inject constructor(
                 )
             )
 
-            // ৪. MediaStore থেকে আসল ফাইল ডিলিট + secure delete
+            // ৪. MediaStore থেকে আসল ফাইল Delete + secure delete
             val uri = Uri.withAppendedPath(
                 MediaStore.Files.getContentUri("external"),
                 mediaStoreId.toString()

@@ -23,7 +23,7 @@ class KeystoreManager @Inject constructor() {
         // আগে থেকে key থাকলে সেটাই দাও
         keyStore.getKey(KEY_ALIAS, null)?.let { return it as SecretKey }
 
-        // না থাকলে নতুন key বানাও
+        // না থাকলে New key বানাও
         val keyGenerator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
             "AndroidKeyStore"

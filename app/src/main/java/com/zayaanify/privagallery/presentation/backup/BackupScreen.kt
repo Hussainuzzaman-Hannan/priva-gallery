@@ -225,7 +225,7 @@ private fun HomeView(
         ) {
             Icon(Icons.Default.Backup, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("নতুন Backup তৈরি করুন")
+            Text("New Backup তৈরি করুন")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -400,7 +400,7 @@ private fun RestoreBackupView(
                 onClick = onReadInfoClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Backup তথ্য যাচাই করুন")
+                Text("Backup Info যাচাই করুন")
             }
         }
 
@@ -414,7 +414,7 @@ private fun RestoreBackupView(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        "Backup তথ্য",
+                        "Backup Info",
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -424,7 +424,7 @@ private fun RestoreBackupView(
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        "তৈরির তারিখ: ${
+                        "তৈরির Date: ${
                             SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
                                 .format(Date(backupInfo.createdAt))
                         }",

@@ -66,7 +66,7 @@ fun OcrSearchScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("স্ক্রিনশট সার্চ") },
+                title = { Text("Screenshot Search") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "ফিরে যান")
@@ -215,7 +215,7 @@ private fun BuildIndexView(onBuildClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "স্ক্রিনশট সার্চ",
+                "Screenshot Search",
                 style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -230,7 +230,7 @@ private fun BuildIndexView(onBuildClick: () -> Unit) {
             Button(onClick = onBuildClick) {
                 Icon(Icons.Default.Search, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Index তৈরি করুন")
+                Text("Create Index")
             }
         }
     }

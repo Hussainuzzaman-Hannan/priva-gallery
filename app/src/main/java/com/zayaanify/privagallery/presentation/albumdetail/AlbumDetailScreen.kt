@@ -157,7 +157,7 @@ private fun SelectionTopBar(
                 Icon(Icons.Default.Lock, contentDescription = "Vault-এ নিন")
             }
             IconButton(onClick = onDeleteClick) {
-                Icon(Icons.Default.Delete, contentDescription = "ডিলিট")
+                Icon(Icons.Default.Delete, contentDescription = "Delete")
             }
         }
     )

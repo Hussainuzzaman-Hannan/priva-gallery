@@ -68,7 +68,7 @@ fun VaultLockScreen(
             "Vault PIN সেট করুন"
         uiState.mode == VaultLockMode.SETUP && uiState.isConfirmStep ->
             "PIN আবার লিখুন"
-        else -> "Vault আনলক করুন"
+        else -> "Vault Unlock করুন"
     }
 
     val activePin = if (uiState.mode == VaultLockMode.SETUP && uiState.isConfirmStep) {
@@ -139,7 +139,7 @@ fun VaultLockScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Fingerprint,
-                    contentDescription = "Biometric আনলক",
+                    contentDescription = "Biometric Unlock",
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )

@@ -77,11 +77,11 @@ fun VaultScreen(
         }
     }
 
-    // ডিলিট কনফার্মেশন ডায়ালগ
+    // Delete কনফার্মেশন ডায়ালগ
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("স্থায়ীভাবে ডিলিট করবেন?") },
+            title = { Text("স্থায়ীভাবে Delete করবেন?") },
             text = {
                 Text(
                     "${uiState.selectedIds.size} টা ফটো vault থেকে সম্পূর্ণ মুছে যাবে। " +
@@ -93,7 +93,7 @@ fun VaultScreen(
                     showDeleteDialog = false
                     viewModel.deleteSelected()
                 }) {
-                    Text("ডিলিট করুন", color = MaterialTheme.colorScheme.error)
+                    Text("Delete করুন", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -212,7 +212,7 @@ private fun VaultSelectionTopBar(
             IconButton(onClick = onDeleteClick) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "স্থায়ীভাবে ডিলিট",
+                    contentDescription = "স্থায়ীভাবে Delete",
                     tint = MaterialTheme.colorScheme.error
                 )
             }

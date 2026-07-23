@@ -115,7 +115,7 @@ class RecycleBinRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val entity = recycleBinDao.getById(recycleBinId)
-                    ?: return@withContext Result.failure(Exception("আইটেম পাওয়া যায়নি"))
+                    ?: return@withContext Result.failure(Exception("Item পাওয়া যায়নি"))
 
                 // file থেকে MediaStore-এ insert করা
                 val contentValues = ContentValues().apply {
@@ -158,7 +158,7 @@ class RecycleBinRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val entity = recycleBinDao.getById(recycleBinId)
-                    ?: return@withContext Result.failure(Exception("আইটেম পাওয়া যায়নি"))
+                    ?: return@withContext Result.failure(Exception("Item পাওয়া যায়নি"))
 
                 File(entity.filePath).delete()
                 File(entity.thumbnailPath).delete()

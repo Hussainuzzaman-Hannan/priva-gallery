@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 /**
  * Recycle Bin-এ রাখা ফটোর মেটাডেটা।
  * আসল ফাইল app-private storage-এ কপি করে রাখা হয়।
- * 30 দিন পর অটো-ডিলিট হবে।
+ * 30 দিন পর অটো-Delete হবে।
  */
 @Entity(tableName = "recycle_bin")
 data class RecycleBinEntity(

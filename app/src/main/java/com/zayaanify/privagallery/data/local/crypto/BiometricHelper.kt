@@ -52,8 +52,8 @@ class BiometricHelper @Inject constructor(
      */
     fun showPrompt(
         activity: FragmentActivity,
-        title: String = "Biometric আনলক",
-        subtitle: String = "fingerprint বা face দিয়ে আনলক করুন",
+        title: String = "Biometric Unlock",
+        subtitle: String = "unlock with fingerprint or face",
         onResult: (BiometricResult) -> Unit
     ) {
         val executor = ContextCompat.getMainExecutor(activity)

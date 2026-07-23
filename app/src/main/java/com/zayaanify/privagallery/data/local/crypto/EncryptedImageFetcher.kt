@@ -33,7 +33,7 @@ class EncryptedImageFetcher(
         }
 
         val bitmap = BitmapFactory.decodeByteArray(decryptedBytes, 0, decryptedBytes.size)
-            ?: throw Exception("Bitmap decode করা যায়নি")
+            ?: throw Exception("Could not decode bitmap")
 
         return DrawableResult(
             drawable = bitmap.toDrawable(options.context.resources),
