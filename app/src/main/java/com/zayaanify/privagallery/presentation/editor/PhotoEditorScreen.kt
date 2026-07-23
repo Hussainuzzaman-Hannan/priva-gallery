@@ -169,7 +169,6 @@ fun PhotoEditorScreen(
                         onRotateLeft = { viewModel.rotateLeft() },
                         onRotateRight = { viewModel.rotateRight() },
                         onCropClick = {
-                            // UCrop launch করা
                             val sourceUri = Uri.parse(uiState.sourceUri)
                             val destFile = File(
                                 context.cacheDir,
@@ -178,8 +177,28 @@ fun PhotoEditorScreen(
                             val destUri = Uri.fromFile(destFile)
 
                             val cropIntent = UCrop.of(sourceUri, destUri)
-                                .withAspectRatio(0f, 0f) // free crop
-                                .withMaxResultSize(2048, 2048)
+                                .withOptions(
+                                    UCrop.Options().apply {
+                                        // Free crop — কোনো fixed ratio নেই
+                                        setFreeStyleCropEnabled(true)
+                                        // Toolbar রঙ
+                                        setToolbarColor(android.graphics.Color.BLACK)
+                                        setStatusBarColor(android.graphics.Color.BLACK)
+                                        setToolbarWidgetColor(android.graphics.Color.WHITE)
+                                        setActiveControlsWidgetColor(
+                                            android.graphics.Color.parseColor("#6200EE")
+                                        )
+                                        // Grid লাইন দেখানো
+                                        setCropGridColumnCount(3)
+                                        setCropGridRowCount(3)
+                                        setShowCropGrid(true)
+                                        setShowCropFrame(true)
+                                        // Hide aspect ratio options — নিজে টেনে করবে
+                                        setHideBottomControls(false)
+                                        setLogoColor(android.graphics.Color.BLACK)
+                                    }
+                                )
+                                .withMaxResultSize(4096, 4096)
                                 .getIntent(context)
 
                             cropLauncher.launch(cropIntent)
