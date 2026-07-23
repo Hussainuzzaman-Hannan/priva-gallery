@@ -87,7 +87,7 @@ fun DuplicateScreen(
                         IconButton(onClick = { viewModel.deleteAllDuplicates() }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "সব duplicate মুছুন",
+                                contentDescription = "সব duplicate Delete",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -271,7 +271,7 @@ private fun DuplicateGroupCard(
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 ) {
-                    Text("Duplicate মুছুন")
+                    Text("Duplicate Delete")
                 }
             }
 

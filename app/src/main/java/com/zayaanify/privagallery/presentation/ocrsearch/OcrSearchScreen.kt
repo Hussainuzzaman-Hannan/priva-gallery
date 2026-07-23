@@ -77,7 +77,7 @@ fun OcrSearchScreen(
                         IconButton(onClick = { viewModel.clearIndex() }) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Index মুছুন",
+                                contentDescription = "Index Delete",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -112,7 +112,7 @@ fun OcrSearchScreen(
                         trailingIcon = {
                             if (uiState.query.isNotBlank()) {
                                 IconButton(onClick = { viewModel.onQueryChange("") }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "মুছুন")
+                                    Icon(Icons.Default.Clear, contentDescription = "Delete")
                                 }
                             }
                         },

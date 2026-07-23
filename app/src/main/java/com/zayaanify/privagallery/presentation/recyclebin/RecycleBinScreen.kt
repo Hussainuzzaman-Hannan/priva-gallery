@@ -87,7 +87,7 @@ fun RecycleBinScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showEmptyDialog = false }) {
-                    Text("বাতিল")
+                    Text("Cancel")
                 }
             }
         )
@@ -113,7 +113,7 @@ fun RecycleBinScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("বাতিল")
+                    Text("Cancel")
                 }
             }
         )
@@ -127,7 +127,7 @@ fun RecycleBinScreen(
                     title = { Text("${uiState.selectedIds.size} সিলেক্টেড") },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.clearSelection() }) {
-                            Icon(Icons.Default.Close, contentDescription = "বাতিল")
+                            Icon(Icons.Default.Close, contentDescription = "Cancel")
                         }
                     },
                     actions = {
@@ -156,7 +156,7 @@ fun RecycleBinScreen(
                             IconButton(onClick = { showEmptyDialog = true }) {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = "সব মুছুন",
+                                    contentDescription = "সব Delete",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }

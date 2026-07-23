@@ -149,7 +149,7 @@ private fun SelectionTopBar(
         title = { Text("$selectedCount সিলেক্টেড") },
         navigationIcon = {
             IconButton(onClick = onClearSelection) {
-                Icon(Icons.Default.Close, contentDescription = "বাতিল")
+                Icon(Icons.Default.Close, contentDescription = "Cancel")
             }
         },
         actions = {

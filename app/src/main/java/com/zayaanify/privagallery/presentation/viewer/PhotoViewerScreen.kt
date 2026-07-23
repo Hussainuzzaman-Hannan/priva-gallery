@@ -106,19 +106,19 @@ fun PhotoViewerScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("ছবি মুছবেন?") },
+            title = { Text("Delete Photo??") },
             text = { Text("এই ছবিটা Recycle Bin-এ যাবে।") },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
                     viewModel.deleteCurrentPhoto()
                 }) {
-                    Text("মুছুন", color = MaterialTheme.colorScheme.error)
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("বাতিল")
+                    Text("Cancel")
                 }
             }
         )
@@ -130,7 +130,7 @@ fun PhotoViewerScreen(
             title = { Text("ছবির তথ্য") },
             text = {
                 Column {
-                    InfoRow("নাম", currentPhoto.displayName)
+                    InfoRow("Name", currentPhoto.displayName)
                     InfoRow("ধরন", currentPhoto.mimeType)
                     InfoRow("সাইজ", formatBytes(currentPhoto.sizeBytes))
                     InfoRow(

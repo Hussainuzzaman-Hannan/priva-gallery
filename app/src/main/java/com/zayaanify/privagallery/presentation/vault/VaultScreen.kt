@@ -98,7 +98,7 @@ fun VaultScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("বাতিল")
+                    Text("Cancel")
                 }
             }
         )
@@ -202,7 +202,7 @@ private fun VaultSelectionTopBar(
         title = { Text("$selectedCount সিলেক্টেড") },
         navigationIcon = {
             IconButton(onClick = onClearSelection) {
-                Icon(Icons.Default.Close, contentDescription = "বাতিল")
+                Icon(Icons.Default.Close, contentDescription = "Cancel")
             }
         },
         actions = {
